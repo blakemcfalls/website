@@ -4,46 +4,43 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blake McFalls — National Security & Defense Technology</title>
-<meta name="description" content="Portfolio of Blake McFalls: defense technology projects, writing on national security, and academic distinctions.">
-<meta name="theme-color" content="#0d1014">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'%3E%3Ccircle r='48' fill='%23f2b134'/%3E%3Cg fill='%230d1014'%3E%3Cpath d='M0 0L-20 -34.6A40 40 0 0 1 20 -34.6Z'/%3E%3Cpath transform='rotate(120)' d='M0 0L-20 -34.6A40 40 0 0 1 20 -34.6Z'/%3E%3Cpath transform='rotate(240)' d='M0 0L-20 -34.6A40 40 0 0 1 20 -34.6Z'/%3E%3Ccircle r='9'/%3E%3C/g%3E%3C/svg%3E">
+<meta name="description" content="Portfolio of Blake McFalls: defense technology projects, interactive explainers of strategic systems, writing on national security, and academic distinctions.">
+<meta name="theme-color" content="#05070a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305070a'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%2359e1ff' stroke-width='2'/%3E%3Cpath d='M16 2v8M16 22v8M2 16h8M22 16h8' stroke='%2359e1ff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23ffb547'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- Liquid-morph filter shared across the site -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <filter id="goo">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="b"/>
-      <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="g"/>
-      <feBlend in="SourceGraphic" in2="g"/>
-    </filter>
-  </defs>
-</svg>
-
-<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
-
 <header class="top">
-  <a class="brand" href="#/" aria-label="Home"><span class="trefoil"></span><b>B. McFalls</b></a>
+  <a class="brand" href="#/" aria-label="Home">
+    <svg class="reticle" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5">
+      <g class="spin"><circle cx="16" cy="16" r="13" stroke-dasharray="6 4"/></g>
+      <circle cx="16" cy="16" r="7"/><path d="M16 1v8M16 23v8M1 16h8M23 16h8"/><circle cx="16" cy="16" r="1.6" fill="#ffb547" stroke="none"/>
+    </svg>
+    <b>Blake McFalls</b>
+  </a>
   <nav id="nav" aria-label="Primary">
-    <a href="#/" data-route="home">Home</a>
-    <a href="#/projects" data-route="projects">Projects</a>
-    <a href="#/writing" data-route="writing">Writing</a>
-    <a href="#/distinctions" data-route="distinctions">Distinctions</a>
+    <a href="#/" data-route="home"><span>01</span>Home</a>
+    <a href="#/projects" data-route="projects"><span>02</span>Projects</a>
+    <a href="#/writing" data-route="writing"><span>03</span>Writing</a>
+    <a href="#/distinctions" data-route="distinctions"><span>04</span>Distinctions</a>
   </nav>
+  <div class="status" aria-hidden="true"><i></i><span id="clock">UTC --:--:--</span></div>
 </header>
 
 <main id="view" tabindex="-1"></main>
 
 <footer class="foot">
-  <span>BLAKE MCFALLS · NATIONAL SECURITY &amp; DEFENSE TECHNOLOGY</span>
-  <span class="mono">DETERRENCE · DEFENSE · DIPLOMACY</span>
+  <span>© <span id="year"></span> Blake McFalls · National security &amp; defense technology</span>
+  <span>Deterrence // Defense // Diplomacy</span>
 </footer>
 
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="lab.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
