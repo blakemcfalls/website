@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blake McFalls — National Security & Defense Technology</title>
+<meta name="description" content="Portfolio of Blake McFalls: defense technology projects, writing on national security, and academic distinctions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Liquid-morph filter shared across the site -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="goo">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="b"/>
+      <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="g"/>
+      <feBlend in="SourceGraphic" in2="g"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="top">
+  <a class="brand" href="#/" aria-label="Home"><span class="trefoil"></span><b>B. McFalls</b></a>
+  <nav id="nav" aria-label="Primary">
+    <a href="#/" data-route="home">Home</a>
+    <a href="#/projects" data-route="projects">Projects</a>
+    <a href="#/writing" data-route="writing">Writing</a>
+    <a href="#/distinctions" data-route="distinctions">Distinctions</a>
+  </nav>
+</header>
+
+<main id="view" tabindex="-1"></main>
+
+<footer class="foot">
+  <span>BLAKE MCFALLS · NATIONAL SECURITY &amp; DEFENSE TECHNOLOGY</span>
+  <span class="mono">DETERRENCE · DEFENSE · DIPLOMACY</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
