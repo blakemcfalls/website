@@ -70,7 +70,7 @@
 
   /* ---------- 01 · Nuclear warhead (implosion fission, conceptual) ---------- */
   SYSTEMS.push({
-    name: "Nuclear Warhead", cls: "Implosion fission · conceptual",
+    id: "nuke", name: "Nuclear Warhead", cls: "Implosion fission · conceptual",
     cam: [-4.6, 2.6, 5.6], target: [0, 0, 0], rotate: false,
     steps: [
       { t: "Architecture", d: "A cutaway of an implosion-type device. Nested shells surround a small core of fissile material. As built, the core sits safely below critical mass, so it cannot sustain a chain reaction on its own." },
@@ -165,7 +165,7 @@
 
   /* ---------- 02 · ICBM ---------- */
   SYSTEMS.push({
-    name: "ICBM", cls: "Three-stage ballistic missile",
+    id: "icbm", name: "ICBM", cls: "Three-stage ballistic missile",
     cam: [6.6, 1.0, 9.4], target: [0, .1, 0],
     steps: [
       { t: "Boost", d: "The first-stage rocket motor burns for about a minute, lifting the missile out of the dense lower atmosphere while it pitches over onto its trajectory." },
@@ -256,7 +256,7 @@
 
   /* ---------- 03 · Missile defense interceptor ---------- */
   SYSTEMS.push({
-    name: "Missile Interceptor", cls: "Hit-to-kill missile defense",
+    id: "interceptor", name: "Missile Interceptor", cls: "Hit-to-kill missile defense",
     cam: [0, 3.4, 17.5], target: [-.5, 1.8, 0], rotate: false,
     steps: [
       { t: "Detect", d: "A ground-based radar searches the sky. Once it picks up a fast, high-arcing object, it locks on and starts building a track." },
@@ -346,7 +346,7 @@
 
   /* ---------- 04 · Fighter jet ---------- */
   SYSTEMS.push({
-    name: "Fighter Jet", cls: "5th-gen multirole aircraft",
+    id: "jet", name: "Fighter Jet", cls: "5th-gen multirole aircraft",
     cam: [7.6, 3.0, 2.6], target: [0, 0, -.6],
     steps: [
       { t: "Lift", d: "The wing is shaped and angled so air moving over the top speeds up and its pressure drops. Higher pressure underneath pushes the wing up." },
@@ -475,7 +475,7 @@
 
   /* ---------- 05 · Drone ---------- */
   SYSTEMS.push({
-    name: "Drone", cls: "Quadcopter UAS",
+    id: "drone", name: "Drone", cls: "Quadcopter UAS",
     cam: [3.4, 2.0, 4.4], target: [0, .1, .2],
     steps: [
       { t: "Hover", d: "Four rotors each push air down. When their combined thrust equals the drone's weight, it hovers. A flight controller adjusts motor speeds hundreds of times per second to stay stable." },
@@ -565,7 +565,7 @@
 
   /* ---------- 06 · Satellite ---------- */
   SYSTEMS.push({
-    name: "Satellite", cls: "Comms / navigation spacecraft",
+    id: "satellite", name: "Satellite", cls: "Comms / navigation spacecraft",
     cam: [5.2, 2.6, 6.8], target: [0, 0, 0],
     steps: [
       { t: "Bus & payload", d: "The bus is the spacecraft's body: power, propulsion, computers and thermal control. Star trackers fix its orientation. Everything launches folded inside a rocket fairing." },
@@ -667,7 +667,7 @@
 
   /* ---------- 07 · AESA radar ---------- */
   SYSTEMS.push({
-    name: "AESA Radar", cls: "Active electronically scanned array",
+    id: "aesa", name: "AESA Radar", cls: "Active electronically scanned array",
     cam: [5.4, 4.2, 6.8], target: [0, 0, 1.2],
     steps: [
       { t: "Tiny radars", d: "An active electronically scanned array is a flat grid of transmit/receive modules. Each one is a miniature radar with its own amplifier and phase shifter." },
@@ -743,13 +743,15 @@
   }
   function isShown(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
 
-  function mount(host) {
+  function mount(host, ids) {
+    const LIST = ids ? ids.map(id => SYSTEMS.find(s => s.id === id)).filter(Boolean) : SYSTEMS;
+    host.classList.toggle("single", LIST.length === 1);
     if (!T || !T.OrbitControls) {
       host.innerHTML = `<div class="lab-fallback">The 3D systems lab needs WebGL and could not load in this browser.</div>`;
       return { dispose() {} };
     }
     host.innerHTML = `
-      <div class="lab-list" role="tablist" aria-label="Systems">${SYSTEMS.map((s, i) =>
+      <div class="lab-list" role="tablist" aria-label="Systems">${LIST.map((s, i) =>
         `<button type="button" role="tab" data-i="${i}"><span class="n">${pad(i + 1)}</span><b>${s.name}</b><small>${s.cls}</small></button>`).join("")}</div>
       <div class="lab-stage">
         <div class="lab-canvas"></div>
@@ -795,13 +797,13 @@
     }
     function select(i) {
       if (root) { scene.remove(root); disposeTree(root); }
-      sys = SYSTEMS[i]; root = new T.Group(); scene.add(root);
+      sys = LIST[i]; root = new T.Group(); scene.add(root);
       ctx = sys.build(root, { camera });
       camera.position.set(...sys.cam); controls.target.set(...sys.target);
       controls.autoRotate = !reduceMotion && sys.rotate !== false; controls.update();
       step = 0; t = reduceMotion ? .6 : 0;
       tabs.forEach((b, k) => b.setAttribute("aria-selected", String(k === i)));
-      $(".lab-sys").textContent = `SYS ${pad(i + 1)}/${pad(SYSTEMS.length)} // ${sys.cls}`;
+      $(".lab-sys").textContent = `SYS ${pad(SYSTEMS.indexOf(sys) + 1)}/${pad(SYSTEMS.length)} // ${sys.cls}`;
       $(".lab-name").textContent = sys.name;
       $(".lab-steps").innerHTML = sys.steps.map((s, k) => `<button type="button" role="tab" data-k="${k}"><i></i><span class="n">${pad(k + 1)}</span><span class="tl">${s.t}</span></button>`).join("");
       stepBtns = [...$(".lab-steps").children];
@@ -912,5 +914,5 @@
     return { dispose() { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); removeEventListener("pointermove", onMove); disposeTree(scene); renderer.dispose(); renderer.forceContextLoss(); } };
   }
 
-  window.Lab = { systems: SYSTEMS.map(s => ({ name: s.name, cls: s.cls })), mount, heroGlobe };
+  window.Lab = { systems: SYSTEMS.map(s => ({ id: s.id, name: s.name, cls: s.cls })), mount, heroGlobe };
 })();

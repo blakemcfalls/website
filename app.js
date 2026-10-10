@@ -31,26 +31,30 @@ const PROJECTS = [
   },
 ];
 
-// Each piece: slug (URL id), title, date, venue/tag, summary, body (array of paragraphs).
+// Each piece: slug (URL id), title, date, venue/tag, summary, body (array of paragraphs),
+// and an optional related 3D system shown under the piece.
 const WRITING = [
   {
-    slug: "john-locke-essay",
-    title: "[Title of your John Locke Global Essay Prize entry]",
-    date: "2026",
-    venue: "John Locke Institute · Commended",
-    summary: "Replace with a one or two sentence summary of the essay.",
+    slug: "polaris-cold-war-nuclear-strategy",
+    title: "Polaris and Cold War Nuclear Strategy, 1953–64",
+    date: "",
+    venue: "Research paper",
+    summary: "How the Polaris submarine-launched ballistic missile program shaped American nuclear strategy from the Eisenhower years through the early 1960s.",
     body: [
-      "This is a placeholder for the full text of your essay. In app.js, find the WRITING list and paste each paragraph as its own string in the body array.",
-      "Each paragraph you add will appear here in the reading view, laid out for long-form reading.",
+      "[Paste the full text of this paper here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
     ],
+    related: { system: "icbm", title: "How a ballistic missile flies", lede: "Polaris put a solid-fuel ballistic missile on a submarine. The boost, staging and reentry sequence below is the same basic physics." },
   },
   {
-    slug: "sample-piece",
-    title: "[Title of another piece]",
-    date: "2025",
-    venue: "Op-ed · Policy brief",
-    summary: "Replace with a short summary. Add as many pieces as you like.",
-    body: ["Placeholder text. Replace it with the full piece."],
+    slug: "people-problem-rare-earths",
+    title: "The People Problem in Rare Earths",
+    date: "",
+    venue: "Essay",
+    summary: "Why the rare earth supply chain is constrained by people and expertise, not only by ore.",
+    body: [
+      "[Paste the full text of this essay here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
+    ],
+    related: { system: "drone", title: "Where rare earths end up", lede: "The brushless motors that keep drones like this one in the air depend on powerful rare earth magnets." },
   },
 ];
 
@@ -64,12 +68,15 @@ const DISTINCTIONS = {
   honors: [
     { title: "John Locke Global Essay Prize", detail: "Commendation", org: "John Locke Institute" },
   ],
-  // Replace these placeholders with your speech & debate awards.
-  debate: [
-    { title: "[Award / placement]", event: "[Event, e.g. Lincoln–Douglas]", meet: "[Tournament, year]" },
-    { title: "[Award / placement]", event: "[Event]", meet: "[Tournament, year]" },
-    { title: "[Award / placement]", event: "[Event]", meet: "[Tournament, year]" },
-  ],
+  debate: {
+    stats: [
+      { value: "4", unit: "th", label: "Ranked in the nation" },
+      { value: "13", label: "National circuit tournament placements" },
+      { value: "3", unit: "×", label: "Broke at nationals" },
+      { value: "2", unit: "×", label: "Second place at state" },
+    ],
+    honors: [{ title: "Academic All-American", sub: "Speech & debate", badge: "Honor" }],
+  },
 };
 
 /* =========================================================
@@ -176,6 +183,13 @@ function nextViz() {
    ========================================================= */
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
 
+// An embedded 3D "how it works" module (rendered by lab.js)
+const labBlock = (ids, eyebrow, title, lede, attrs = 'class="sec"') => `<section ${attrs}>
+    <div class="sechead"><p class="eyebrow">${eyebrow}</p><h2>${esc(title)}</h2><p class="lede">${esc(lede)}</p></div>
+    <div class="lab-shell frame" data-systems="${ids.join(",")}"></div>
+  </section>`;
+const metaLine = w => [w.venue, w.date].filter(Boolean).map(esc).join(" · ");
+
 function home() {
   const [first, ...rest] = PROFILE.name.split(" ");
   return `<section class="page">
@@ -185,26 +199,21 @@ function home() {
         <p class="eyebrow">// Portfolio · ${esc(PROFILE.tagline)}</p>
         <h1>${esc(first)}<br><span>${esc(rest.join(" "))}</span></h1>
         <p class="lede">${esc(PROFILE.intro)}</p>
-        <div class="cta"><a class="btn" href="#/projects">View projects →</a><a class="btn ghost" href="#/" data-scroll="labsec">Systems lab ↓</a></div>
+        <div class="cta"><a class="btn" href="#/projects">View projects →</a><a class="btn ghost" href="#/" data-scroll="feature">How a fighter works ↓</a></div>
       </div>
       <dl class="telemetry">
         <div><dt>GPA · weighted</dt><dd><span data-count="${DISTINCTIONS.gpa}">${DISTINCTIONS.gpa}</span><small>W</small></dd></div>
         <div><dt>SAT</dt><dd><span data-count="${DISTINCTIONS.sat}">${DISTINCTIONS.sat}</span></dd></div>
         <div><dt>AP exams · score 5</dt><dd><span data-count="${DISTINCTIONS.aps.length}">${DISTINCTIONS.aps.length}</span><small>×5</small></dd></div>
+        <div><dt>Speech &amp; debate · national</dt><dd><span data-count="${DISTINCTIONS.debate.stats[0].value}">${DISTINCTIONS.debate.stats[0].value}</span><small>TH</small></dd></div>
         <div><dt>John Locke Essay Prize</dt><dd>Commended</dd></div>
       </dl>
     </div>
-    <section class="sec" id="labsec">
-      <div class="sechead">
-        <p class="eyebrow">// Systems lab · how things work</p>
-        <h2>How strategic systems actually work</h2>
-        <p class="lede">Interactive 3D explainers of the technology at the center of national security. Pick a system, step through how it works, and drag to look around.</p>
-      </div>
-      <div class="lab-shell frame" id="lab"></div>
-    </section>
+    ${labBlock(["jet"], "// Featured system · how it works", "Inside a fifth-generation fighter",
+      "Step through how a modern fighter generates lift, makes thrust, maneuvers and hides from radar. Drag the model to look around.", 'class="sec" id="feature"')}
     <div class="tiles">
       <a class="frame tile" href="#/projects"><span class="eyebrow">02 · Projects</span><h3>Defense tech I've built</h3><p>${PROJECTS.filter(p => p.tag !== "Placeholder").map(p => esc(p.title)).join(" · ")}</p><span class="go">Open →</span></a>
-      <a class="frame tile" href="#/writing"><span class="eyebrow">03 · Writing</span><h3>Essays & analysis</h3><p>${WRITING.length} pieces on deterrence, strategy and policy.</p><span class="go">Open →</span></a>
+      <a class="frame tile" href="#/writing"><span class="eyebrow">03 · Writing</span><h3>Essays & analysis</h3><p>${WRITING.map(w => esc(w.title)).join(" · ")}</p><span class="go">Open →</span></a>
       <a class="frame tile" href="#/distinctions"><span class="eyebrow">04 · Distinctions</span><h3>Academics & awards</h3><p>Test scores, AP exams, essay prizes and speech & debate.</p><span class="go">Open →</span></a>
     </div>
   </section>`;
@@ -229,6 +238,8 @@ function projects() {
         </div>
       </article>`).join("")}
     </div>
+    ${labBlock(["interceptor", "aesa", "drone"], "// Under the hood", "The systems behind the projects",
+      "My missile defense glove and risk tracker sit on top of real defense systems. Here is how the interceptors, radars and drones they connect to actually work.")}
   </section>`;
 }
 
@@ -239,10 +250,12 @@ function writingList() {
     <div class="list">${WRITING.map((w, i) => `
       <a class="piece-row" href="#/writing/${encodeURIComponent(w.slug)}">
         <span class="n">${pad(i + 1)}</span>
-        <div><span class="meta">${esc(w.venue)} · ${esc(w.date)}</span><h3 style="margin-top:10px">${esc(w.title)}</h3><p>${esc(w.summary)}</p></div>
+        <div><span class="meta">${metaLine(w)}</span><h3 style="margin-top:10px">${esc(w.title)}</h3><p>${esc(w.summary)}</p></div>
         <span class="go">Read →</span>
       </a>`).join("")}
     </div>
+    ${labBlock(["nuke", "icbm"], "// Background · the hardware of deterrence", "What the strategy was built around",
+      "Cold War nuclear strategy rested on two technologies: the warhead and the ballistic missile that carries it. Step through how each one works.")}
   </section>`;
 }
 
@@ -253,11 +266,12 @@ function article(slug) {
     <div class="progress" aria-hidden="true"><i></i></div>
     <a class="btn ghost back" href="#/writing">← All writing</a>
     <article class="frame article">
-      <span class="eyebrow">${esc(w.venue)}</span>
+      <span class="eyebrow">${metaLine(w)}</span>
       <h1>${esc(w.title)}</h1>
-      <div class="meta">${esc(PROFILE.name)} · ${esc(w.date)}</div>
+      <div class="meta">${[PROFILE.name, w.date].filter(Boolean).map(esc).join(" · ")}</div>
       ${w.body.map(p => `<p>${esc(p)}</p>`).join("")}
     </article>
+    ${w.related ? labBlock([w.related.system], "// Related system", w.related.title, w.related.lede, 'class="related"') : ""}
   </section>`;
 }
 
@@ -274,8 +288,11 @@ function distinctions() {
       <div class="aps">${d.aps.map(a => `<div class="ap"><span>AP ${esc(a)}</span><span class="bars" aria-hidden="true">${"<i></i>".repeat(5)}</span><b>5</b></div>`).join("")}</div></div>
     <div class="subsec"><header><h2>Writing honors</h2></header>
       <div class="awards">${d.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(h.title)}</h3><div class="sub">${esc(h.org)}</div></div><span class="badge">${esc(h.detail)}</span></div>`).join("")}</div></div>
-    <div class="subsec"><header><h2>Speech &amp; debate</h2></header>
-      <div class="awards">${d.debate.map((a, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(a.title)}</h3><div class="sub">${esc(a.event)}</div></div><span class="tag">${esc(a.meet)}</span></div>`).join("")}</div></div>
+    <div class="subsec"><header><h2>Speech &amp; debate</h2><span class="eyebrow">Ranked 4th in the nation</span></header>
+      <div class="readouts four" style="margin-top:24px">${d.debate.stats.map(s => `<div class="frame readout"><div class="big"><span data-count="${s.value}">${s.value}</span>${s.unit ? `<small>${esc(s.unit)}</small>` : ""}</div><span class="label">${esc(s.label)}</span></div>`).join("")}</div>
+      <div class="awards" style="margin-top:12px">${d.debate.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(h.title)}</h3><div class="sub">${esc(h.sub)}</div></div><span class="badge">${esc(h.badge)}</span></div>`).join("")}</div></div>
+    ${labBlock(["satellite"], "// System spotlight", "How a satellite constellation works",
+      "Satellites underpin navigation, communications and missile warning. Step through how one deploys, holds its orbit and works with a constellation.")}
   </section>`;
 }
 
@@ -348,9 +365,9 @@ function animateView(view) {
   view.querySelectorAll(".eyebrow").forEach(scramble);
   view.querySelectorAll("canvas.risk").forEach(riskGlobe);
   if (window.Lab) {
-    const globe = view.querySelector(".hero-globe"), lab = view.querySelector("#lab");
+    const globe = view.querySelector(".hero-globe");
     if (globe) mounted.push(Lab.heroGlobe(globe));
-    if (lab) mounted.push(Lab.mount(lab));
+    view.querySelectorAll(".lab-shell[data-systems]").forEach(el => mounted.push(Lab.mount(el, el.dataset.systems.split(","))));
   }
   movePill();
   progress();
