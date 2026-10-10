@@ -1,8 +1,8 @@
 /* =========================================================
-   SYSTEMS LAB — interactive "how it works" 3D explainers.
-   Built on three.js r128 (vendor/three.min.js).
-   Each system defines its steps and a build() that returns
-   { update(step, t, time), labels }, where t runs 0→1 per step.
+   3D SYSTEMS — animated models of defense systems, embedded
+   as visuals throughout the site. Built on three.js r128.
+   Each system defines its stage count and a build() that returns
+   { update(stage, t, time), labels }, where t runs 0→1 per stage.
    ========================================================= */
 (function () {
   "use strict";
@@ -15,7 +15,6 @@
   const ease = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const lerp = (a, b, t) => a + (b - a) * t;
   const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-  const pad = n => String(n).padStart(2, "0");
 
   /* ---------- geometry & material helpers ---------- */
   const metal = (color, o = {}) => new T.MeshStandardMaterial({ color, metalness: .55, roughness: .45, ...o });
@@ -72,13 +71,7 @@
   SYSTEMS.push({
     id: "nuke", name: "Nuclear Warhead", cls: "Implosion fission · conceptual",
     cam: [-4.6, 2.6, 5.6], target: [0, 0, 0], rotate: false,
-    steps: [
-      { t: "Architecture", d: "A cutaway of an implosion-type device. Nested shells surround a small core of fissile material. As built, the core sits safely below critical mass, so it cannot sustain a chain reaction on its own." },
-      { t: "Simultaneous detonation", d: "Shaped explosive charges, arranged like the panels of a soccer ball, fire at the same instant. Timing is everything: any lag would distort the blast and the device would fail." },
-      { t: "Implosion", d: "The separate blasts merge into one smooth, inward-moving shockwave. It squeezes the core to a fraction of its size, pushing it past critical density." },
-      { t: "Chain reaction", d: "A burst of neutrons starts fission. Each split nucleus releases more neutrons, which split more nuclei. The reaction multiplies through dozens of generations in under a microsecond." },
-      { t: "Energy release", d: "A tiny fraction of the core's mass becomes energy: heat, light, radiation and blast. That scale of destruction is why deterrence, arms control and nonproliferation matter." },
-    ],
+    steps: 5,
     build(root) {
       const dev = new T.Group(); root.add(dev);
       const cut = (r, w, h) => new T.SphereGeometry(r, w, h, Math.PI / 2, Math.PI * 1.5);
@@ -167,13 +160,7 @@
   SYSTEMS.push({
     id: "icbm", name: "ICBM", cls: "Three-stage ballistic missile",
     cam: [6.6, 1.0, 9.4], target: [0, .1, 0],
-    steps: [
-      { t: "Boost", d: "The first-stage rocket motor burns for about a minute, lifting the missile out of the dense lower atmosphere while it pitches over onto its trajectory." },
-      { t: "Staging", d: "Each spent stage is dropped so the missile stops carrying dead weight. The next stage ignites and keeps accelerating toward a speed of roughly 7 km/s." },
-      { t: "Shroud jettison", d: "Above the atmosphere the aerodynamic nose shroud is no longer needed. It splits away, exposing the payload while the third stage completes the burn." },
-      { t: "Post-boost vehicle", d: "A small maneuvering bus fine-tunes its velocity and releases each reentry vehicle on a slightly different path. This is how one missile can carry multiple independently targeted warheads (MIRVs)." },
-      { t: "Reentry", d: "After about 30 minutes on a mostly unpowered ballistic arc, the reentry vehicles plunge back into the atmosphere. Their heat shields glow from compression heating." },
-    ],
+    steps: 5,
     build(root) {
       const rocket = new T.Group(); root.add(rocket);
       const hull = metal(0xc9d1d7, { metalness: .25, roughness: .55 }), dark = metal(0x1a2129, { side: T.DoubleSide });
@@ -258,13 +245,7 @@
   SYSTEMS.push({
     id: "interceptor", name: "Missile Interceptor", cls: "Hit-to-kill missile defense",
     cam: [0, 3.4, 17.5], target: [-.5, 1.8, 0], rotate: false,
-    steps: [
-      { t: "Detect", d: "A ground-based radar searches the sky. Once it picks up a fast, high-arcing object, it locks on and starts building a track." },
-      { t: "Track & predict", d: "Because a warhead in midcourse coasts on a predictable ballistic arc, fire-control computers can project where it will be and choose an intercept point." },
-      { t: "Launch", d: "The interceptor launches toward where the threat will be, not where it is now. Its booster accelerates it toward the predicted intercept point." },
-      { t: "Kill vehicle", d: "The booster drops away. A small kill vehicle uses its own seeker and short bursts from divert thrusters to correct its course in the final seconds." },
-      { t: "Hit-to-kill", d: "There is no explosive warhead. The kill vehicle destroys the target by colliding with it at a combined speed of several kilometers per second, like hitting a bullet with a bullet." },
-    ],
+    steps: 5,
     build(root, env) {
       const P = V3(1.2, 3.4, 0), S = V3(4, -3, 1.2), R = V3(-3.5, -3, 2.2);
       const threatC = new T.QuadraticBezierCurve3(V3(-11, 5.2, -4), V3(-4.5, 7.2, -1.6), P);
@@ -348,13 +329,7 @@
   SYSTEMS.push({
     id: "jet", name: "Fighter Jet", cls: "5th-gen multirole aircraft",
     cam: [7.6, 3.0, 2.6], target: [0, 0, -.6],
-    steps: [
-      { t: "Lift", d: "The wing is shaped and angled so air moving over the top speeds up and its pressure drops. Higher pressure underneath pushes the wing up." },
-      { t: "Turbofan", d: "A fan pulls air in and a compressor squeezes it. Fuel burns in the combustor, and the hot gas spins a turbine that powers the fan before blasting out the nozzle." },
-      { t: "Afterburner", d: "Extra fuel is sprayed into the exhaust behind the turbine. Burning it adds large thrust for takeoff or combat, but at a steep fuel cost. Shock diamonds form in the supersonic plume." },
-      { t: "Control surfaces", d: "Ailerons tilt in opposite directions to roll the jet. Stabilators move together to pitch the nose. A fly-by-wire computer coordinates them dozens of times per second." },
-      { t: "Low observability", d: "Stealth comes mostly from shape. Aligned edges and angled facets scatter radar energy away from the transmitter, so very little returns to be detected." },
-    ],
+    steps: 5,
     build(root) {
       const jet = new T.Group(); root.add(jet);
       const skin = metal(0x2a333d, { transparent: true, metalness: .35, roughness: .5 }), E = .35;
@@ -477,13 +452,7 @@
   SYSTEMS.push({
     id: "drone", name: "Drone", cls: "Quadcopter UAS",
     cam: [3.4, 2.0, 4.4], target: [0, .1, .2],
-    steps: [
-      { t: "Hover", d: "Four rotors each push air down. When their combined thrust equals the drone's weight, it hovers. A flight controller adjusts motor speeds hundreds of times per second to stay stable." },
-      { t: "Pitch & move", d: "Speeding up the rear rotors and slowing the front ones tips the drone forward. Part of the thrust now points backward, so the drone accelerates forward." },
-      { t: "Yaw", d: "Two rotors spin clockwise and two counterclockwise, so their twisting forces cancel. Speed up one pair and the imbalance turns the whole drone in place." },
-      { t: "Sense", d: "A stabilized gimbal carries electro-optical and infrared cameras. Onboard AI can detect and track objects in real time and send only what matters back to the operator." },
-      { t: "Swarm", d: "Networked drones share position and sensor data over a mesh link. They can hold formations and split up tasks with little human input, a fast-growing area of defense autonomy." },
-    ],
+    steps: 5,
     build(root) {
       const mk = () => {
         const d = new T.Group();
@@ -567,13 +536,7 @@
   SYSTEMS.push({
     id: "satellite", name: "Satellite", cls: "Comms / navigation spacecraft",
     cam: [5.2, 2.6, 6.8], target: [0, 0, 0],
-    steps: [
-      { t: "Bus & payload", d: "The bus is the spacecraft's body: power, propulsion, computers and thermal control. Star trackers fix its orientation. Everything launches folded inside a rocket fairing." },
-      { t: "Deployment", d: "Once in space, the solar arrays unfold to power the spacecraft and the high-gain antenna swings into position to point at Earth." },
-      { t: "Orbit", d: "In low Earth orbit a satellite travels at about 7.6 km/s, circling the planet every 90 minutes. It is constantly falling toward Earth but moving sideways fast enough to keep missing it." },
-      { t: "Downlink", d: "As it passes overhead, the satellite beams imagery, communications or telemetry to a ground station, then stores data until the next pass." },
-      { t: "Constellation", d: "GPS-style navigation uses many satellites on inclined orbits. A receiver that hears precisely timed signals from at least four of them can solve for its own position." },
-    ],
+    steps: 5,
     build(root) {
       const earth = new T.Group(); root.add(earth);
       earth.add(new T.Mesh(new T.SphereGeometry(2.2, 48, 32), new T.MeshStandardMaterial({ color: 0x0a1822, metalness: .2, roughness: .9, emissive: 0x04121b })));
@@ -669,12 +632,7 @@
   SYSTEMS.push({
     id: "aesa", name: "AESA Radar", cls: "Active electronically scanned array",
     cam: [5.4, 4.2, 6.8], target: [0, 0, 1.2],
-    steps: [
-      { t: "Tiny radars", d: "An active electronically scanned array is a flat grid of transmit/receive modules. Each one is a miniature radar with its own amplifier and phase shifter." },
-      { t: "Phase delay", d: "If every module transmits in step, the beam points straight ahead. Delay each module slightly more than its neighbor and the waves add up along a tilted front, sending the beam off at an angle." },
-      { t: "Electronic steering", d: "Changing the delays moves the beam in microseconds without moving the antenna. A mechanical radar has to physically turn to look somewhere new." },
-      { t: "Multi-target tracking", d: "By rapidly switching between beam directions, one array can track several targets, keep searching and even jam, all at the same time." },
-    ],
+    steps: 4,
     build(root) {
       const arr = new T.Group(); arr.position.z = -1.5; root.add(arr);
       const back = part(new T.BoxGeometry(3.4, 3.4, .2), metal(0x1a2129), COL.cyan, .4); back.position.z = -.12; arr.add(back);
@@ -733,7 +691,9 @@
   });
 
   /* =========================================================
-     LAB ENGINE
+     AMBIENT SCENE ENGINE
+     Renders one system as a looping, label-free 3D visual inside
+     page content. The camera drifts around the model on its own.
      ========================================================= */
   function disposeTree(obj) {
     obj.traverse(o => {
@@ -741,117 +701,50 @@
       if (o.material) [].concat(o.material).forEach(m => m.dispose());
     });
   }
-  function isShown(o) { for (; o; o = o.parent) if (!o.visible) return false; return true; }
+  // Which stages of each system loop in ambient mode (skips stages that need explanation)
+  const AMBIENT = { nuke: [0, 1, 2, 3], jet: [0, 2, 3], drone: [0, 1, 3, 4], aesa: [1, 2, 3] };
 
-  function mount(host, ids) {
-    const LIST = ids ? ids.map(id => SYSTEMS.find(s => s.id === id)).filter(Boolean) : SYSTEMS;
-    host.classList.toggle("single", LIST.length === 1);
-    if (!T || !T.OrbitControls) {
-      host.innerHTML = `<div class="lab-fallback">The 3D systems lab needs WebGL and could not load in this browser.</div>`;
-      return { dispose() {} };
-    }
-    host.innerHTML = `
-      <div class="lab-list" role="tablist" aria-label="Systems">${LIST.map((s, i) =>
-        `<button type="button" role="tab" data-i="${i}"><span class="n">${pad(i + 1)}</span><b>${s.name}</b><small>${s.cls}</small></button>`).join("")}</div>
-      <div class="lab-stage">
-        <div class="lab-canvas"></div>
-        <div class="lab-labels" aria-hidden="true"></div>
-        <div class="hud hud-tl"><span class="lab-sys"></span><b class="lab-name"></b></div>
-        <div class="hud hud-tr"><button type="button" class="chip lab-play"></button></div>
-        <div class="hud hud-bl">◎ Drag to rotate</div>
-        <div class="hud hud-br lab-clock"></div>
-      </div>
-      <div class="lab-info">
-        <div class="lab-steps" role="tablist" aria-label="Steps"></div>
-        <div class="lab-caption" aria-live="polite"><span class="eyebrow lab-stepno"></span><h3 class="lab-title"></h3><p class="lab-desc"></p></div>
-      </div>`;
-    const $ = s => host.querySelector(s);
-    const stage = $(".lab-stage");
+  function scene(host, id, opts = {}) {
+    const sys = SYSTEMS.find(s => s.id === id);
+    if (!T || !sys) return { dispose() {} };
     let renderer;
-    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); }
-    catch (e) { host.innerHTML = `<div class="lab-fallback">The 3D systems lab needs WebGL, which is unavailable in this browser.</div>`; return { dispose() {} }; }
+    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return { dispose() {} }; }
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-    $(".lab-canvas").appendChild(renderer.domElement);
-    const scene = new T.Scene(); scene.fog = new T.Fog(0x05070a, 16, 40);
+    host.appendChild(renderer.domElement);
+    const s3 = new T.Scene(); s3.fog = new T.Fog(0x05070a, 16, 40);
     const camera = new T.PerspectiveCamera(38, 1, .1, 200);
-    const controls = new T.OrbitControls(camera, renderer.domElement);
-    Object.assign(controls, { enableDamping: true, enableZoom: false, enablePan: false, autoRotateSpeed: .45, minPolarAngle: .25, maxPolarAngle: Math.PI * .62 });
-    scene.add(new T.HemisphereLight(0xbfe9ff, 0x0a0e13, .6));
-    const key = new T.DirectionalLight(0xffffff, 1.0); key.position.set(5, 8, 6); scene.add(key);
-    const rim = new T.PointLight(COL.cyan, .8, 30); rim.position.set(-6, 3, -5); scene.add(rim);
-    const warm = new T.PointLight(COL.amber, .5, 30); warm.position.set(6, -2, 4); scene.add(warm);
-    const grid = new T.GridHelper(60, 60, 0x1f4757, 0x0f2530); grid.position.y = -3; grid.material.transparent = true; grid.material.opacity = .5; scene.add(grid);
-
-    const STEP_SEC = 6;
-    let sys, ctx, root, step = 0, t = 0, playing = !reduceMotion, labelEls = [], stepBtns = [];
-    const tabs = [...host.querySelectorAll(".lab-list button")];
-    const playBtn = $(".lab-play");
-    const setPlay = p => { playing = p; playBtn.textContent = p ? "❚❚ Pause" : "▶ Play"; playBtn.setAttribute("aria-pressed", String(p)); };
-
-    function caption() {
-      const s = sys.steps[step];
-      $(".lab-stepno").textContent = `Step ${pad(step + 1)} / ${pad(sys.steps.length)}`;
-      $(".lab-title").textContent = s.t;
-      $(".lab-desc").textContent = s.d;
-      stepBtns.forEach((b, k) => { b.classList.toggle("on", k === step); b.setAttribute("aria-selected", String(k === step)); });
-    }
-    function select(i) {
-      if (root) { scene.remove(root); disposeTree(root); }
-      sys = LIST[i]; root = new T.Group(); scene.add(root);
-      ctx = sys.build(root, { camera });
-      camera.position.set(...sys.cam); controls.target.set(...sys.target);
-      controls.autoRotate = !reduceMotion && sys.rotate !== false; controls.update();
-      step = 0; t = reduceMotion ? .6 : 0;
-      tabs.forEach((b, k) => b.setAttribute("aria-selected", String(k === i)));
-      $(".lab-sys").textContent = `SYS ${pad(SYSTEMS.indexOf(sys) + 1)}/${pad(SYSTEMS.length)} // ${sys.cls}`;
-      $(".lab-name").textContent = sys.name;
-      $(".lab-steps").innerHTML = sys.steps.map((s, k) => `<button type="button" role="tab" data-k="${k}"><i></i><span class="n">${pad(k + 1)}</span><span class="tl">${s.t}</span></button>`).join("");
-      stepBtns = [...$(".lab-steps").children];
-      $(".lab-labels").innerHTML = ctx.labels.map(l => `<div class="lab-label"><i></i><span>${l.text}</span></div>`).join("");
-      labelEls = [...$(".lab-labels").children];
-      caption();
-    }
-    host.addEventListener("click", e => {
-      const tab = e.target.closest(".lab-list button"); if (tab) return select(+tab.dataset.i);
-      const sb = e.target.closest(".lab-steps button"); if (sb) { step = +sb.dataset.k; t = reduceMotion ? .6 : 0; caption(); return; }
-      if (e.target.closest(".lab-play")) setPlay(!playing);
-    });
-
-    function resize() {
-      const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
-      renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    }
-    const ro = new ResizeObserver(resize); ro.observe(stage);
-    let visible = true;
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }); io.observe(stage);
-
-    const v = new T.Vector3(); let raf, last = performance.now();
+    s3.add(new T.HemisphereLight(0xbfe9ff, 0x0a0e13, .6));
+    const key = new T.DirectionalLight(0xffffff, 1.0); key.position.set(5, 8, 6); s3.add(key);
+    const rim = new T.PointLight(COL.cyan, .8, 30); rim.position.set(-6, 3, -5); s3.add(rim);
+    const warm = new T.PointLight(COL.amber, .5, 30); warm.position.set(6, -2, 4); s3.add(warm);
+    const grid = new T.GridHelper(60, 60, 0x1f4757, 0x0f2530); grid.position.y = -3; grid.material.transparent = true; grid.material.opacity = .45; s3.add(grid);
+    const root = new T.Group(); s3.add(root);
+    const ctx = sys.build(root, { camera });
+    const target = V3(...sys.target), off = V3(...sys.cam).sub(target).multiplyScalar(opts.dist || 1);
+    const radius = Math.hypot(off.x, off.z), az0 = Math.atan2(off.x, off.z);
+    const order = opts.steps || AMBIENT[id] || [...Array(sys.steps).keys()];
+    const STEP_SEC = opts.stepSec || 6;
+    let k = 0, t = reduceMotion ? .6 : 0, visible = true, raf, last = performance.now();
+    function resize() { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    const ro = new ResizeObserver(resize); ro.observe(host);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }); io.observe(host);
     function frame(now) {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(.05, (now - last) / 1000); last = now;
       if (!visible) return;
       const time = now / 1000;
-      if (!reduceMotion) {
-        t += dt / STEP_SEC;
-        if (t >= 1) { if (playing) { t = 0; step = (step + 1) % sys.steps.length; caption(); } else t = 1; }
-      }
-      ctx.update(step, t, time);
-      stepBtns.forEach((b, k) => b.style.setProperty("--p", k < step ? 1 : k === step ? t : 0));
-      controls.update();
-      renderer.render(scene, camera);
-      const w = stage.clientWidth, h = stage.clientHeight;
-      ctx.labels.forEach((l, k) => {
-        let on = l.steps.includes(step) && isShown(l.at);
-        if (on) { l.at.getWorldPosition(v); v.project(camera); on = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05; }
-        labelEls[k].classList.toggle("on", on);
-        if (on) labelEls[k].style.transform = `translate(${((v.x * .5 + .5) * w).toFixed(1)}px,${((-v.y * .5 + .5) * h).toFixed(1)}px)`;
-      });
+      if (!reduceMotion) { t += dt / STEP_SEC; if (t >= 1) { t = 0; k = (k + 1) % order.length; } }
+      ctx.update(order[k], t, time);
+      const az = az0 + (reduceMotion ? 0 : sys.rotate === false ? Math.sin(time * .15) * .25 : time * .08);
+      camera.position.set(target.x + Math.sin(az) * radius, target.y + off.y, target.z + Math.cos(az) * radius);
+      camera.lookAt(target);
+      renderer.render(s3, camera);
     }
-    setPlay(playing); select(0); resize(); raf = requestAnimationFrame(frame);
+    resize(); raf = requestAnimationFrame(frame);
     return {
       dispose() {
-        cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); controls.dispose();
-        disposeTree(scene); renderer.dispose(); renderer.forceContextLoss();
+        cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
+        disposeTree(s3); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
       },
     };
   }
@@ -914,5 +807,5 @@
     return { dispose() { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); removeEventListener("pointermove", onMove); disposeTree(scene); renderer.dispose(); renderer.forceContextLoss(); } };
   }
 
-  window.Lab = { systems: SYSTEMS.map(s => ({ id: s.id, name: s.name, cls: s.cls })), mount, heroGlobe };
+  window.Lab = { scene, heroGlobe };
 })();

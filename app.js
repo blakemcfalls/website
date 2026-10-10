@@ -7,6 +7,8 @@ const PROFILE = {
   intro: "I build tools and write about the systems that keep deterrence stable: risk monitoring, missile defense, and the policy choices around them.",
 };
 
+// Each project's visual: viz "risk" (risk globe) or a 3D scene id:
+// "nuke", "icbm", "interceptor", "jet", "drone", "satellite", "aesa".
 const PROJECTS = [
   {
     title: "Geopolitical Risk Tracker",
@@ -18,21 +20,24 @@ const PROJECTS = [
   {
     title: "Missile Defense Glove",
     tag: "Hardware · Human–machine interface",
-    viz: "glove",
+    viz: "interceptor",
+    inset: "glove",
+    dist: 1.3,
+    cap: "Gesture-guided intercept · simulated",
     desc: "A wearable controller that reads hand motion with flex sensors and an inertial measurement unit, then uses those gestures to direct a simulated interceptor against an incoming track. It is a prototype for faster, more intuitive operator control in air and missile defense.",
     stack: ["Microcontroller", "Flex sensors", "IMU", "Embedded C"],
   },
   {
     title: "Your Next Project",
     tag: "Placeholder",
-    viz: "next",
-    desc: "Add another project by copying an entry in the PROJECTS list in app.js. Give it a title, tag, description and stack, then choose a visualization: \"risk\", \"glove\" or \"next\".",
+    viz: "drone",
+    desc: "Add another project by copying an entry in the PROJECTS list in app.js. Give it a title, tag, description and stack, then pick its visual from the list above that entry.",
     stack: ["Edit app.js"],
   },
 ];
 
 // Each piece: slug (URL id), title, date, venue/tag, summary, body (array of paragraphs),
-// and an optional related 3D system shown under the piece.
+// and scene: the 3D model shown with the piece (same ids as project visuals).
 const WRITING = [
   {
     slug: "polaris-cold-war-nuclear-strategy",
@@ -43,7 +48,7 @@ const WRITING = [
     body: [
       "[Paste the full text of this paper here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
     ],
-    related: { system: "icbm", title: "How a ballistic missile flies", lede: "Polaris put a solid-fuel ballistic missile on a submarine. The boost, staging and reentry sequence below is the same basic physics." },
+    scene: "icbm",
   },
   {
     slug: "people-problem-rare-earths",
@@ -54,7 +59,7 @@ const WRITING = [
     body: [
       "[Paste the full text of this essay here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
     ],
-    related: { system: "drone", title: "Where rare earths end up", lede: "The brushless motors that keep drones like this one in the air depend on powerful rare earth magnets." },
+    scene: "drone",
   },
 ];
 
@@ -131,50 +136,22 @@ function riskGlobe(canvas) {
   frame(0);
 }
 
-function gloveViz() {
+// The glove itself, shown as an inset over its 3D intercept scene
+function gloveInset() {
   const finger = (x, len, d) => `<g class="curl" style="animation-delay:${d}s">
       <rect x="${x}" y="${150 - len}" width="28" height="${len + 20}" rx="14" fill="#0a0e13" stroke="#59e1ff" stroke-opacity=".7"/>
       <line x1="${x + 14}" y1="${160 - len}" x2="${x + 14}" y2="158" stroke="#ffb547" stroke-width="1.5" stroke-dasharray="3 3"/>
       <circle class="pulse" style="animation-delay:${d}s" cx="${x + 14}" cy="${163 - len}" r="3.5" fill="#ffb547"/></g>`;
-  return `<svg viewBox="0 0 400 300" role="img" aria-label="Animated sensor glove steering an interceptor toward an incoming track">
+  return `<svg class="inset" viewBox="30 50 190 210" role="img" aria-label="Sensor glove with flex sensors on each finger and an IMU on the back of the hand">
     <style>.curl{animation:curl 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
       @keyframes curl{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.8)}}
-      .pulse{animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}
-      .sweep{animation:sweep 4s linear infinite;transform-origin:300px 110px}@keyframes sweep{to{transform:rotate(360deg)}}
-      .intc{offset-path:path('M150 140 Q 230 20 300 92');animation:fly 3.2s ease-in infinite}
-      @keyframes fly{0%{offset-distance:0%;opacity:0}10%{opacity:1}90%{opacity:1}100%{offset-distance:100%;opacity:0}}
-      .threat{animation:threat 3.2s linear infinite}
-      @keyframes threat{0%{transform:translate(70px,-60px);opacity:0}15%{opacity:1}100%{transform:translate(0,0)}}
-      .dash{stroke-dasharray:4 6;animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-20}}</style>
-    <g stroke="#59e1ff" fill="none" stroke-opacity=".2">
-      <circle cx="300" cy="110" r="70"/><circle cx="300" cy="110" r="46"/><circle cx="300" cy="110" r="22"/>
-      <path d="M230 110h140M300 40v140"/>
-    </g>
-    <path class="sweep" d="M300 110 L370 110 A70 70 0 0 0 349.5 60.5 Z" fill="rgba(89,225,255,.16)"/>
-    <g class="threat"><circle cx="300" cy="92" r="4" fill="#ff4d3d"/><rect x="292" y="84" width="16" height="16" fill="none" stroke="#ff4d3d"/></g>
-    <path class="dash" d="M150 140 Q 230 20 300 92" fill="none" stroke="#ffb547" stroke-width="1.5"/>
-    <circle class="intc" r="4" fill="#ffb547"/>
-    <g transform="translate(-14 14)">
-      ${finger(52, 66, 0)}${finger(84, 86, .15)}${finger(116, 80, .3)}${finger(148, 62, .45)}
-      <g class="curl" style="animation-delay:.6s"><rect x="166" y="160" width="28" height="72" rx="14" fill="#0a0e13" stroke="#59e1ff" stroke-opacity=".7" transform="rotate(26 181 225)"/></g>
-      <rect x="48" y="140" width="132" height="98" rx="30" fill="#0a0e13" stroke="#59e1ff"/>
-      <rect x="86" y="170" width="54" height="36" fill="none" stroke="#59e1ff" stroke-opacity=".7"/>
-      <path d="M113 188h18M113 188v-14M113 188l-10 8" stroke="#ffb547" stroke-width="1.5"/>
-      <text x="86" y="221" font-family="JetBrains Mono" font-size="8" fill="#74818c" letter-spacing="1">IMU</text>
-      <rect x="58" y="228" width="112" height="20" fill="none" stroke="#59e1ff" stroke-opacity=".5"/>
-    </g>
-  </svg>`;
-}
-
-function nextViz() {
-  return `<svg viewBox="0 0 400 300" role="img" aria-label="Placeholder targeting reticle">
-    <style>.r1{animation:r 14s linear infinite;transform-origin:200px 150px}.r2{animation:r 9s linear infinite reverse;transform-origin:200px 150px}@keyframes r{to{transform:rotate(360deg)}}</style>
-    <g fill="none" stroke="#59e1ff">
-      <circle class="r1" cx="200" cy="150" r="90" stroke-opacity=".35" stroke-dasharray="2 10"/>
-      <circle class="r2" cx="200" cy="150" r="66" stroke-opacity=".6" stroke-dasharray="40 14"/>
-      <path d="M200 50v40M200 210v40M100 150h40M260 150h40" stroke-opacity=".6"/>
-    </g>
-    <text x="200" y="154" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#ffb547" letter-spacing="3">+ ADD PROJECT</text>
+      .pulse{animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}</style>
+    ${finger(52, 66, 0)}${finger(84, 86, .15)}${finger(116, 80, .3)}${finger(148, 62, .45)}
+    <g class="curl" style="animation-delay:.6s"><rect x="166" y="160" width="28" height="72" rx="14" fill="#0a0e13" stroke="#59e1ff" stroke-opacity=".7" transform="rotate(26 181 225)"/></g>
+    <rect x="48" y="140" width="132" height="98" rx="30" fill="#0a0e13" stroke="#59e1ff"/>
+    <rect x="86" y="170" width="54" height="36" fill="none" stroke="#59e1ff" stroke-opacity=".7"/>
+    <path d="M113 188h18M113 188v-14M113 188l-10 8" stroke="#ffb547" stroke-width="1.5"/>
+    <text x="86" y="221" font-family="JetBrains Mono" font-size="8" fill="#74818c" letter-spacing="1">IMU</text>
   </svg>`;
 }
 
@@ -182,13 +159,13 @@ function nextViz() {
    VIEWS
    ========================================================= */
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-
-// An embedded 3D "how it works" module (rendered by lab.js)
-const labBlock = (ids, eyebrow, title, lede, attrs = 'class="sec"') => `<section ${attrs}>
-    <div class="sechead"><p class="eyebrow">${eyebrow}</p><h2>${esc(title)}</h2><p class="lede">${esc(lede)}</p></div>
-    <div class="lab-shell frame" data-systems="${ids.join(",")}"></div>
-  </section>`;
 const metaLine = w => [w.venue, w.date].filter(Boolean).map(esc).join(" · ");
+// A 3D model rendered into the page by lab.js
+const scene = (id, cls = "", dist = 1) => `<div class="scene ${cls}" data-scene="${id}"${dist !== 1 ? ` data-dist="${dist}"` : ""} aria-hidden="true"></div>`;
+const pageHead = (eyebrow, title, lede, sceneId) => `<div class="pagehead has-visual">
+    <div class="ph-copy"><p class="eyebrow">${eyebrow}</p><h2>${title}</h2>${lede ? `<p class="lede">${lede}</p>` : ""}</div>
+    ${scene(sceneId, "ph-visual")}
+  </div>`;
 
 function home() {
   const [first, ...rest] = PROFILE.name.split(" ");
@@ -199,7 +176,7 @@ function home() {
         <p class="eyebrow">// Portfolio · ${esc(PROFILE.tagline)}</p>
         <h1>${esc(first)}<br><span>${esc(rest.join(" "))}</span></h1>
         <p class="lede">${esc(PROFILE.intro)}</p>
-        <div class="cta"><a class="btn" href="#/projects">View projects →</a><a class="btn ghost" href="#/" data-scroll="feature">How a fighter works ↓</a></div>
+        <div class="cta"><a class="btn" href="#/projects">View projects →</a><a class="btn ghost" href="#/writing">Read my writing</a></div>
       </div>
       <dl class="telemetry">
         <div><dt>GPA · weighted</dt><dd><span data-count="${DISTINCTIONS.gpa}">${DISTINCTIONS.gpa}</span><small>W</small></dd></div>
@@ -209,20 +186,17 @@ function home() {
         <div><dt>John Locke Essay Prize</dt><dd>Commended</dd></div>
       </dl>
     </div>
-    ${labBlock(["jet"], "// Featured system · how it works", "Inside a fifth-generation fighter",
-      "Step through how a modern fighter generates lift, makes thrust, maneuvers and hides from radar. Drag the model to look around.", 'class="sec" id="feature"')}
     <div class="tiles">
-      <a class="frame tile" href="#/projects"><span class="eyebrow">02 · Projects</span><h3>Defense tech I've built</h3><p>${PROJECTS.filter(p => p.tag !== "Placeholder").map(p => esc(p.title)).join(" · ")}</p><span class="go">Open →</span></a>
-      <a class="frame tile" href="#/writing"><span class="eyebrow">03 · Writing</span><h3>Essays & analysis</h3><p>${WRITING.map(w => esc(w.title)).join(" · ")}</p><span class="go">Open →</span></a>
-      <a class="frame tile" href="#/distinctions"><span class="eyebrow">04 · Distinctions</span><h3>Academics & awards</h3><p>Test scores, AP exams, essay prizes and speech & debate.</p><span class="go">Open →</span></a>
+      <a class="frame tile" href="#/projects">${scene("jet")}<span class="eyebrow">02 · Projects</span><h3>Defense tech I've built</h3><p>${PROJECTS.filter(p => p.tag !== "Placeholder").map(p => esc(p.title)).join(" · ")}</p><span class="go">Open →</span></a>
+      <a class="frame tile" href="#/writing">${scene("icbm")}<span class="eyebrow">03 · Writing</span><h3>Essays & analysis</h3><p>${WRITING.map(w => esc(w.title)).join(" · ")}</p><span class="go">Open →</span></a>
+      <a class="frame tile" href="#/distinctions">${scene("satellite")}<span class="eyebrow">04 · Distinctions</span><h3>Academics & awards</h3><p>Ranked 4th nationally in speech &amp; debate · 4.7 GPA · 1550 SAT · 9 AP 5s</p><span class="go">Open →</span></a>
     </div>
   </section>`;
 }
 
 function projects() {
   return `<section class="page">
-    <div class="pagehead"><p class="eyebrow">// 02 · Projects</p><h2>Built &amp; tested</h2>
-      <p class="lede">Hardware and software prototypes for sensing, risk monitoring and operator control.</p></div>
+    ${pageHead("// 02 · Projects", "Built &amp; tested", "Hardware and software prototypes for sensing, risk monitoring and operator control.", "aesa")}
     <div class="projects">${PROJECTS.map((p, i) => `
       <article class="frame project">
         <div class="copy">
@@ -232,30 +206,25 @@ function projects() {
           <ul>${p.stack.map(s => `<li class="tag">${esc(s)}</li>`).join("")}</ul>
         </div>
         <div class="pviz">
-          ${p.viz === "risk" ? `<canvas class="risk" role="img" aria-label="Rotating globe with pulsing geopolitical risk hotspots"></canvas>`
-            : p.viz === "glove" ? gloveViz() + `<span class="cap">Gesture → intercept · simulated</span>`
-            : nextViz()}
+          ${p.viz === "risk" ? `<canvas class="risk" role="img" aria-label="Rotating globe with pulsing geopolitical risk hotspots"></canvas>` : scene(p.viz, "", p.dist)}
+          ${p.inset === "glove" ? gloveInset() : ""}
+          ${p.cap ? `<span class="cap">${esc(p.cap)}</span>` : ""}
         </div>
       </article>`).join("")}
     </div>
-    ${labBlock(["interceptor", "aesa", "drone"], "// Under the hood", "The systems behind the projects",
-      "My missile defense glove and risk tracker sit on top of real defense systems. Here is how the interceptors, radars and drones they connect to actually work.")}
   </section>`;
 }
 
 function writingList() {
   return `<section class="page">
-    <div class="pagehead"><p class="eyebrow">// 03 · Writing</p><h2>Essays &amp; analysis</h2>
-      <p class="lede">Select a title to read the full piece.</p></div>
+    ${pageHead("// 03 · Writing", "Essays &amp; analysis", "Research and argument on nuclear strategy, supply chains and national security. Select a piece to read it in full.", "nuke")}
     <div class="list">${WRITING.map((w, i) => `
       <a class="piece-row" href="#/writing/${encodeURIComponent(w.slug)}">
         <span class="n">${pad(i + 1)}</span>
-        <div><span class="meta">${metaLine(w)}</span><h3 style="margin-top:10px">${esc(w.title)}</h3><p>${esc(w.summary)}</p></div>
-        <span class="go">Read →</span>
+        <div><span class="meta">${metaLine(w)}</span><h3 style="margin-top:10px">${esc(w.title)}</h3><p>${esc(w.summary)}</p><span class="go">Read →</span></div>
+        <div class="thumb frame">${w.scene ? scene(w.scene) : ""}</div>
       </a>`).join("")}
     </div>
-    ${labBlock(["nuke", "icbm"], "// Background · the hardware of deterrence", "What the strategy was built around",
-      "Cold War nuclear strategy rested on two technologies: the warhead and the ballistic missile that carries it. Step through how each one works.")}
   </section>`;
 }
 
@@ -266,19 +235,19 @@ function article(slug) {
     <div class="progress" aria-hidden="true"><i></i></div>
     <a class="btn ghost back" href="#/writing">← All writing</a>
     <article class="frame article">
+      ${w.scene ? scene(w.scene, "article-visual") : ""}
       <span class="eyebrow">${metaLine(w)}</span>
       <h1>${esc(w.title)}</h1>
       <div class="meta">${[PROFILE.name, w.date].filter(Boolean).map(esc).join(" · ")}</div>
       ${w.body.map(p => `<p>${esc(p)}</p>`).join("")}
     </article>
-    ${w.related ? labBlock([w.related.system], "// Related system", w.related.title, w.related.lede, 'class="related"') : ""}
   </section>`;
 }
 
 function distinctions() {
   const d = DISTINCTIONS;
   return `<section class="page">
-    <div class="pagehead"><p class="eyebrow">// 04 · Distinctions</p><h2>Academics &amp; awards</h2></div>
+    ${pageHead("// 04 · Distinctions", "Academics &amp; awards", "Ranked fourth in the nation in speech and debate, with a 4.7 weighted GPA, a 1550 SAT and a 5 on nine AP exams.", "satellite")}
     <div class="readouts">
       <div class="frame readout"><span class="eyebrow">Weighted GPA</span><div class="big"><span data-count="${d.gpa}">${d.gpa}</span><small>W</small></div><div class="meter"><i style="--v:${Math.min(1, d.gpa / 5)}"></i></div></div>
       <div class="frame readout"><span class="eyebrow">SAT</span><div class="big"><span data-count="${d.sat}">${d.sat}</span><small>/1600</small></div><div class="meter"><i style="--v:${d.sat / 1600}"></i></div></div>
@@ -291,8 +260,6 @@ function distinctions() {
     <div class="subsec"><header><h2>Speech &amp; debate</h2><span class="eyebrow">Ranked 4th in the nation</span></header>
       <div class="readouts four" style="margin-top:24px">${d.debate.stats.map(s => `<div class="frame readout"><div class="big"><span data-count="${s.value}">${s.value}</span>${s.unit ? `<small>${esc(s.unit)}</small>` : ""}</div><span class="label">${esc(s.label)}</span></div>`).join("")}</div>
       <div class="awards" style="margin-top:12px">${d.debate.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(h.title)}</h3><div class="sub">${esc(h.sub)}</div></div><span class="badge">${esc(h.badge)}</span></div>`).join("")}</div></div>
-    ${labBlock(["satellite"], "// System spotlight", "How a satellite constellation works",
-      "Satellites underpin navigation, communications and missile warning. Step through how one deploys, holds its orbit and works with a constellation.")}
   </section>`;
 }
 
@@ -367,7 +334,7 @@ function animateView(view) {
   if (window.Lab) {
     const globe = view.querySelector(".hero-globe");
     if (globe) mounted.push(Lab.heroGlobe(globe));
-    view.querySelectorAll(".lab-shell[data-systems]").forEach(el => mounted.push(Lab.mount(el, el.dataset.systems.split(","))));
+    view.querySelectorAll("[data-scene]").forEach(el => mounted.push(Lab.scene(el, el.dataset.scene, { dist: +el.dataset.dist || 1 })));
   }
   movePill();
   progress();
