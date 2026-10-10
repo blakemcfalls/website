@@ -57,7 +57,15 @@ const WRITING = [
     url: "https://www.firstbreakfast.com/p/the-people-problem-in-rare-earths",
     summary: "Argues that closing the U.S. gap with China in rare earths depends mainly on human capital (the experts, skilled workers and know-how to produce domestically) more than on federal financing.",
     body: ["Read the full essay on First Breakfast using the link above."],
-    scene: "drone",
+    scene: "dronechip",
+  },
+  {
+    slug: "library-of-alexandria",
+    title: "What If the Library of Alexandria Had Survived?",
+    date: "2026",
+    venue: "John Locke Global Essay Prize · Commended",
+    summary: "A speculative history arguing that the Library of Alexandria's survival would have given Song China the scientific knowledge it needed to industrialize first, and so changed the global path of development.",
+    scene: "gears",
   },
 ];
 
@@ -69,7 +77,7 @@ const DISTINCTIONS = {
     "U.S. Government", "English Language", "Biology", "World History", "Human Geography",
   ],
   honors: [
-    { title: "John Locke Global Essay Prize", detail: "Commendation", org: "John Locke Institute" },
+    { title: "John Locke Global Essay Prize", detail: "Commendation", org: "John Locke Institute", essay: "library-of-alexandria" },
   ],
   debate: {
     stats: [
@@ -245,7 +253,7 @@ function article(slug) {
       <h1>${esc(w.title)}</h1>
       <div class="meta">${[PROFILE.name, w.date].filter(Boolean).map(esc).join(" · ")}</div>
       ${w.url ? `<a class="btn ghost" href="${esc(w.url)}" target="_blank" rel="noopener" style="margin-bottom:28px">Read the original ↗</a>` : ""}
-      ${w.body.map(b => typeof b === "string" ? `<p>${rich(b)}</p>` : `<h${b.h}>${rich(b.t)}</h${b.h}>`).join("")}
+      ${w.body.map(b => typeof b === "string" ? `<p>${rich(b)}</p>` : b.ul ? `<ul class="bullets">${b.ul.map(li => `<li>${rich(li)}</li>`).join("")}</ul>` : `<h${b.h}>${rich(b.t)}</h${b.h}>`).join("")}
       ${w.notes ? `<section class="notes"><h2>Endnotes</h2><ol>${w.notes.map((n, i) => `<li id="note-${i + 1}">${rich(n)}</li>`).join("")}</ol></section>` : ""}
       ${w.bibliography ? `<section class="notes"><h2>Bibliography</h2><ul>${w.bibliography.map(b => `<li>${rich(b)}</li>`).join("")}</ul></section>` : ""}
     </article>
@@ -264,7 +272,7 @@ function distinctions() {
     <div class="subsec"><header><h2>AP scholar record</h2><span class="eyebrow">Score of 5 on every exam</span></header>
       <div class="aps">${d.aps.map(a => `<div class="ap"><span>AP ${esc(a)}</span><span class="bars" aria-hidden="true">${"<i></i>".repeat(5)}</span><b>5</b></div>`).join("")}</div></div>
     <div class="subsec"><header><h2>Writing honors</h2></header>
-      <div class="awards">${d.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(h.title)}</h3><div class="sub">${esc(h.org)}</div></div><span class="badge">${esc(h.detail)}</span></div>`).join("")}</div></div>
+      <div class="awards">${d.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${h.essay ? `<a class="essay-link" href="#/writing/${h.essay}">${esc(h.title)}</a>` : esc(h.title)}</h3><div class="sub">${esc(h.org)}${h.essay ? " · read the essay →" : ""}</div></div><span class="badge">${esc(h.detail)}</span></div>`).join("")}</div></div>
     <div class="subsec"><header><h2>Speech &amp; debate</h2><span class="eyebrow">Ranked 4th in the nation</span></header>
       <div class="readouts four" style="margin-top:24px">${d.debate.stats.map(s => `<div class="frame readout"><div class="big"><span data-count="${s.value}">${s.value}</span>${s.unit ? `<small>${esc(s.unit)}</small>` : ""}</div><span class="label">${esc(s.label)}</span></div>`).join("")}</div>
       <div class="awards" style="margin-top:12px">${d.debate.honors.map((h, i) => `<div class="award"><span class="n">${pad(i + 1)}</span><div><h3>${esc(h.title)}</h3><div class="sub">${esc(h.sub)}</div></div><span class="badge">${esc(h.badge)}</span></div>`).join("")}</div></div>

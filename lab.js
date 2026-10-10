@@ -453,16 +453,18 @@
     id: "drone", name: "Drone", cls: "Quadcopter UAS",
     cam: [3.4, 2.0, 4.4], target: [0, .1, .2],
     steps: 5,
-    build(root) {
-      const mk = () => {
+    build(root, env, opt = {}) {
+      const gm = opt.chip ? { transparent: true, opacity: .13, depthWrite: false } : {};
+      const mk = (ghost = false) => {
+        const gm = ghost ? { transparent: true, opacity: .13, depthWrite: false } : {};
         const d = new T.Group();
-        d.add(part(new T.BoxGeometry(.7, .2, 1.0), metal(0x27313b), COL.cyan, .45));
-        const top = part(new T.BoxGeometry(.45, .12, .6), metal(0x1b222a), COL.cyan, .6); top.position.y = .16; d.add(top);
+        d.add(part(new T.BoxGeometry(.7, .2, 1.0), metal(0x27313b, gm), COL.cyan, .45));
+        const top = part(new T.BoxGeometry(.45, .12, .6), metal(0x1b222a, gm), COL.cyan, .6); top.position.y = .16; d.add(top);
         const rotors = [];
         [[1, 1], [-1, 1], [-1, -1], [1, -1]].forEach(([sx, sz], k) => {
           const arm = part(new T.BoxGeometry(.1, .06, 1.05), metal(0x2f3a45), COL.cyan, .35);
           arm.position.set(sx * .38, 0, sz * .38); arm.rotation.y = Math.atan2(sx, sz); d.add(arm);
-          const motor = part(new T.CylinderGeometry(.11, .12, .16, 20), metal(0x161c22), COL.cyan, .5); motor.position.set(sx * .68, .06, sz * .68); d.add(motor);
+          const motor = part(new T.CylinderGeometry(.11, .12, .16, 20), metal(0x161c22, gm), COL.cyan, .5); motor.position.set(sx * .68, .06, sz * .68); d.add(motor);
           const prop = new T.Group(); prop.position.set(sx * .68, .16, sz * .68);
           prop.add(new T.Mesh(new T.BoxGeometry(.9, .012, .07), metal(0x9fb3c2, { metalness: .2 })));
           const dg = new T.CircleGeometry(.47, 32); dg.rotateX(-Math.PI / 2);
@@ -472,7 +474,50 @@
         const gimbal = part(new T.SphereGeometry(.12, 16, 12), metal(0x10151a), COL.cyan, .5); gimbal.position.set(0, -.17, .36); d.add(gimbal);
         return { d, rotors, gimbal, top };
       };
-      const main = mk(); root.add(main.d);
+      const main = mk(!!opt.chip); root.add(main.d);
+
+      // Chip variant: the body turns translucent to reveal a processor, circuit traces and motor magnets
+      let chip = null;
+      if (opt.chip) {
+        const g = new T.Group(); g.position.y = .02; main.d.add(g);
+        g.add(part(new T.BoxGeometry(.58, .02, .86), metal(0x0b3b3a, { metalness: .3, roughness: .6 }), COL.cyan, .5));
+        const pkg = part(new T.BoxGeometry(.3, .045, .3), metal(0x12161b), COL.cyan, .8); pkg.position.y = .035; g.add(pkg);
+        const lid = part(new T.BoxGeometry(.25, .012, .25), metal(0x8fa2b0, { metalness: .8, roughness: .3 }), COL.cyan, .7); lid.position.y = .064; g.add(lid);
+        const cells = [];
+        for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) {
+          const c = new T.Mesh(new T.BoxGeometry(.034, .006, .034), new T.MeshBasicMaterial({ color: COL.cyan, transparent: true }));
+          c.position.set((i - 2) * .045, .074, (j - 2) * .045); g.add(c); cells.push(c);
+        }
+        const pp = [];
+        for (let s = 0; s < 4; s++) for (let k = 0; k < 8; k++) {
+          const u = (k - 3.5) * .034, r = .15, o = .205, c = Math.cos(s * Math.PI / 2), n = Math.sin(s * Math.PI / 2);
+          pp.push(V3(c * r - n * u, .03, n * r + c * u), V3(c * o - n * u, .03, n * o + c * u));
+        }
+        g.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(pp), lineMat(COL.amber, .8)));
+        const chipGlow = glow(COL.cyan, .9, .4); chipGlow.position.y = .09; g.add(chipGlow);
+        const paths = main.rotors.map(r => {
+          const pts = [V3(r.sx * .21, .015, r.sz * .13), V3(r.sx * .3, .015, r.sz * .13), V3(r.sx * .3, .015, r.sz * .3), V3(r.sx * .68, .05, r.sz * .68)];
+          const cp = new T.CurvePath(); for (let i = 0; i < pts.length - 1; i++) cp.add(new T.LineCurve3(pts[i], pts[i + 1]));
+          g.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), lineMat(COL.cyan, .7)));
+          const pulses = [0, 1, 2].map(() => { const s = glow(COL.amber, .16); g.add(s); return s; });
+          return { cp, pulses };
+        });
+        const mags = main.rotors.map(r => {
+          const m = new T.Mesh(new T.TorusGeometry(.085, .016, 10, 24), new T.MeshStandardMaterial({ color: 0x7a4a10, emissive: COL.amber, emissiveIntensity: .8 }));
+          m.rotation.x = Math.PI / 2; m.position.set(r.sx * .68, .06, r.sz * .68); main.d.add(m); return m;
+        });
+        chip = {
+          update(time) {
+            cells.forEach((c, k) => {
+              const v = .5 + .5 * Math.sin(time * 3 + rnd(k) * 12);
+              c.material.opacity = .25 + .75 * v; c.material.color.setHex(rnd(k + Math.floor(time * 2)) > .82 ? COL.amber : COL.cyan);
+            });
+            paths.forEach((p, k) => p.pulses.forEach((s, i) => s.position.copy(p.cp.getPoint((time * .35 + i / 3 + k * .13) % 1))));
+            mags.forEach((m, k) => m.material.emissiveIntensity = .7 + .6 * Math.sin(time * 4 + k * 1.6));
+            chipGlow.scale.setScalar(.9 + .12 * Math.sin(time * 5));
+          },
+        };
+      }
       const arrows = main.rotors.map(r => { const a = new T.ArrowHelper(V3(0, 1, 0), V3(r.sx * .68, .22, r.sz * .68), 1, COL.cyan, .18, .1); main.d.add(a); return a; });
       const ground = particles(400, COL.cyan, .06, .5); root.add(ground);
       const cg = new T.ConeGeometry(1.3, 2.6, 28, 1, true); cg.translate(0, -1.3, 0);
@@ -501,6 +546,12 @@
         ],
         update(step, t, time) {
           const d = main.d, speeds = [1, 1, 1, 1];
+          if (chip) {
+            ground.visible = cone.visible = links.visible = false; boxes.forEach(b => b.visible = false); swarm.forEach(m => m.d.visible = false); arrows.forEach(x => x.visible = false);
+            d.position.set(0, Math.sin(time * 1.5) * .04, 0); d.rotation.set(0, 0, 0);
+            main.rotors.forEach(r => { r.prop.rotation.y = time * 30 * (r.cw ? -1 : 1); });
+            chip.update(time); return;
+          }
           d.position.set(0, Math.sin(time * 1.5) * .06, 0); d.rotation.set(0, 0, 0); d.scale.setScalar(1);
           if (step === 1) { main.rotors.forEach((r, k) => speeds[k] = r.sz > 0 ? .7 : 1.35); d.rotation.x = .28 * ease(seg(t, 0, .3)); }
           if (step === 2) { main.rotors.forEach((r, k) => speeds[k] = r.cw ? 1.35 : .7); d.rotation.y = -ease(t) * Math.PI * 1.2; }
@@ -530,6 +581,13 @@
         },
       };
     },
+  });
+
+  // Drone with a translucent body showing the processor, traces and rare-earth motor magnets inside
+  SYSTEMS.push({
+    id: "dronechip", name: "Drone Electronics", cls: "Processor, traces and motor magnets",
+    cam: [1.45, 1.25, 1.85], target: [0, 0, .05], steps: 1, fit: 1.8,
+    build: (root, env) => SYSTEMS.find(s => s.id === "drone").build(root, env, { chip: true }),
   });
 
   /* ---------- 06 · Satellite ---------- */
@@ -690,6 +748,65 @@
     },
   });
 
+
+  /* ---------- Gear train driving a piston engine ---------- */
+  const gearGeo = (N, hole, depth) => {
+    const R = N * .05, r0 = R * .82, a = Math.PI * 2 / N, pts = [];
+    for (let i = 0; i < N; i++) for (const [f, r] of [[0, r0], [.2, R], [.4, R], [.6, r0]]) pts.push(new T.Vector2(Math.cos(i * a + f * a) * r, Math.sin(i * a + f * a) * r));
+    const sh = new T.Shape(pts);
+    const h = new T.Path(); h.absarc(0, 0, hole, 0, Math.PI * 2, true); sh.holes.push(h);
+    for (let k = 0; k < 5; k++) { const l = new T.Path(); l.absarc(Math.cos(k * 1.2566) * R * .55, Math.sin(k * 1.2566) * R * .55, R * .13, 0, Math.PI * 2, true); sh.holes.push(l); }
+    const g = new T.ExtrudeGeometry(sh, { depth, bevelEnabled: false }); g.translate(0, 0, -depth / 2); return g;
+  };
+  SYSTEMS.push({
+    id: "gears", name: "Gear Train", cls: "Mechanical power transmission",
+    cam: [2.2, 1.5, 8.6], target: [.2, -.45, .1], steps: 2, rotate: false, fit: 2.1,
+    build(root) {
+      const W = .3, steel = 0x8fa2b0, bronze = 0xb08d3a;
+      const G = [{ N: 28, c: V3(0, 0, 0), m: steel }, { N: 18, c: null, m: bronze }, { N: 12, c: null, m: steel }, { N: 22, c: null, m: bronze }];
+      const aStep = N => Math.PI * 2 / N, pr = N => N * .05 * .91;
+      G[1].c = V3(pr(28) + pr(18), 0, 0);
+      G[2].c = G[1].c.clone().setZ(.34);
+      const al = -Math.PI / 3; G[3].c = V3(G[2].c.x + Math.cos(al) * (pr(12) + pr(22)), G[2].c.y + Math.sin(al) * (pr(12) + pr(22)), .34);
+      // phases so teeth interlock (see mesh condition: X tooth centre at contact, Y gap centre opposite)
+      const ps = [-.3 * aStep(28), Math.PI - .8 * aStep(18), al - .3 * aStep(12), al + Math.PI - .8 * aStep(22)];
+      const gears = G.map((g, i) => {
+        const mesh = part(gearGeo(g.N, .1 + g.N * .004, W), metal(g.m, { metalness: .65, roughness: .4 }), COL.cyan, .5, 20);
+        mesh.position.copy(g.c); root.add(mesh);
+        const shaft = new T.Mesh(new T.CylinderGeometry(.07, .07, W + .35, 14), metal(0xdfe6ea)); shaft.rotation.x = Math.PI / 2; shaft.position.copy(g.c); root.add(shaft);
+        return mesh;
+      });
+      const wA = 1, w = [wA, -wA * 28 / 18, -wA * 28 / 18, wA * (28 / 18) * (12 / 22)];
+      // shaft linking the compound gear pair
+      const link = new T.Mesh(new T.CylinderGeometry(.07, .07, .6, 14), metal(0xdfe6ea)); link.rotation.x = Math.PI / 2; link.position.copy(G[1].c).setZ(.17); root.add(link);
+      // crank + connecting rod + piston (stage 1)
+      const eng = new T.Group(); root.add(eng);
+      const pin = new T.Mesh(new T.CylinderGeometry(.09, .09, .3, 14), metal(COL.amber, { emissive: COL.amber, emissiveIntensity: .6 })); pin.rotation.x = Math.PI / 2; eng.add(pin);
+      const rod = part(new T.BoxGeometry(2.4, .12, .1), metal(0xc9d1d7), COL.cyan, .6); eng.add(rod);
+      const head = part(new T.BoxGeometry(.5, .72, .5), metal(0x5a6672, { metalness: .8, roughness: .35 }), COL.amber, .7); eng.add(head);
+      const cyl = part(new T.BoxGeometry(2.5, .9, .7), metal(0x2a333d, { transparent: true, opacity: .25, depthWrite: false }), COL.cyan, .6); cyl.position.set(-2.45, 0, .38); eng.add(cyl);
+      const steam = particles(120, COL.white, .22, .35); eng.add(steam);
+      const R = 1.0, L = 2.4;
+      return {
+        labels: [],
+        update(step, t, time) {
+          const s = time * .55, show = step === 1 ? ease(seg(t, 0, .25)) : step === 0 ? 0 : 1;
+          gears.forEach((m, i) => { m.rotation.z = ps[i] + w[i] * s; });
+          eng.visible = show > .01; eng.scale.setScalar(.2 + .8 * show);
+          const phi = ps[0] + w[0] * s + 1.1, px = Math.cos(phi) * R, py = Math.sin(phi) * R;
+          const xp = px - Math.sqrt(L * L - py * py);
+          pin.position.set(px, py, .38);
+          rod.position.set((px + xp) / 2, py / 2, .38); rod.rotation.z = Math.atan2(py, px - xp);
+          rod.scale.x = Math.hypot(px - xp, py) / L;
+          head.position.set(xp, 0, .38);
+          steam.visible = eng.visible;
+          setPts(steam, (i, v) => { const ph = (time * .45 + rnd(i)) % 1; v.set(-3.5 + (rnd(i + 2) - .5) * .5 - ph * .3, .45 + ph * 1.4, .4 + (rnd(i + 5) - .5) * .4); });
+          root.rotation.y = 0;
+        },
+      };
+    },
+  });
+
   /* =========================================================
      AMBIENT SCENE ENGINE
      Renders one system as a looping, label-free 3D visual inside
@@ -724,8 +841,8 @@
     const radius = Math.hypot(off.x, off.z), az0 = Math.atan2(off.x, off.z);
     const order = opts.steps || AMBIENT[id] || [...Array(sys.steps).keys()];
     const STEP_SEC = opts.stepSec || 6;
-    let k = 0, t = reduceMotion ? .6 : 0, visible = true, raf, last = performance.now();
-    function resize() { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    let k = 0, t = reduceMotion ? .6 : 0, visible = true, raf, last = performance.now(), fitK = 1;
+    function resize() { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); fitK = sys.fit ? Math.max(1, sys.fit / camera.aspect) : 1; }
     const ro = new ResizeObserver(resize); ro.observe(host);
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }); io.observe(host);
     function frame(now) {
@@ -736,7 +853,7 @@
       if (!reduceMotion) { t += dt / STEP_SEC; if (t >= 1) { t = 0; k = (k + 1) % order.length; } }
       ctx.update(order[k], t, time);
       const az = az0 + (reduceMotion ? 0 : sys.rotate === false ? Math.sin(time * .15) * .25 : time * .08);
-      camera.position.set(target.x + Math.sin(az) * radius, target.y + off.y, target.z + Math.cos(az) * radius);
+      camera.position.set(target.x + Math.sin(az) * radius * fitK, target.y + off.y * fitK, target.z + Math.cos(az) * radius * fitK);
       camera.lookAt(target);
       renderer.render(s3, camera);
     }
