@@ -36,29 +36,27 @@ const PROJECTS = [
   },
 ];
 
-// Each piece: slug (URL id), title, date, venue/tag, summary, body (array of paragraphs),
-// and scene: the 3D model shown with the piece (same ids as project visuals).
+// Each piece: slug (URL id), title, date, venue/tag, summary, optional url (original publication),
+// scene (the 3D model shown with the piece) and body (array of paragraphs). Long pieces keep their
+// body, endnotes and bibliography in essays.js, keyed by slug.
 const WRITING = [
   {
     slug: "polaris-cold-war-nuclear-strategy",
-    title: "Polaris and Cold War Nuclear Strategy, 1953–64",
+    title: "Polaris and the Development of U.S. Nuclear Strategy, 1953–1964",
     date: "",
     venue: "Research paper",
-    summary: "How the Polaris submarine-launched ballistic missile program shaped American nuclear strategy from the Eisenhower years through the early 1960s.",
-    body: [
-      "[Paste the full text of this paper here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
-    ],
+    summary: "Argues that the U.S. never had a coherent nuclear doctrine under Eisenhower or Kennedy, and that the Navy's Polaris missile, built amid bureaucratic disorder, ended up shaping the strategy of finite deterrence.",
+    // full text, endnotes and bibliography live in essays.js
     scene: "icbm",
   },
   {
     slug: "people-problem-rare-earths",
     title: "The People Problem in Rare Earths",
-    date: "",
-    venue: "Essay",
-    summary: "Why the rare earth supply chain is constrained by people and expertise, not only by ore.",
-    body: [
-      "[Paste the full text of this essay here. In app.js, find this entry in the WRITING list and add each paragraph as its own string in the body array.]",
-    ],
+    date: "June 18, 2026",
+    venue: "Essay · First Breakfast",
+    url: "https://www.firstbreakfast.com/p/the-people-problem-in-rare-earths",
+    summary: "Argues that closing the U.S. gap with China in rare earths depends mainly on human capital (the experts, skilled workers and know-how to produce domestically) more than on federal financing.",
+    body: ["Read the full essay on First Breakfast using the link above."],
     scene: "drone",
   },
 ];
@@ -159,6 +157,12 @@ function gloveInset() {
    VIEWS
    ========================================================= */
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+// Rich text for essays: *italic*, [^n] endnote markers, and bare URLs become links
+const rich = s => esc(s)
+  .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+  .replace(/(?:\[\^\d+\])+/g, m => `<sup class="fn">${[...m.matchAll(/\d+/g)].map(n => `<a href="#" data-note="${n[0]}" aria-label="Endnote ${n[0]}">${n[0]}</a>`).join(", ")}</sup>`)
+  .replace(/(https?:\/\/[^\s<]*[^\s<.,;)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+const textOf = w => ({ ...w, ...(typeof ESSAYS !== "undefined" ? ESSAYS[w.slug] : null) });
 const metaLine = w => [w.venue, w.date].filter(Boolean).map(esc).join(" · ");
 // A 3D model rendered into the page by lab.js
 const scene = (id, cls = "", dist = 1) => `<div class="scene ${cls}" data-scene="${id}"${dist !== 1 ? ` data-dist="${dist}"` : ""} aria-hidden="true"></div>`;
@@ -229,8 +233,9 @@ function writingList() {
 }
 
 function article(slug) {
-  const w = WRITING.find(x => x.slug === slug);
-  if (!w) return writingList();
+  const found = WRITING.find(x => x.slug === slug);
+  if (!found) return writingList();
+  const w = textOf(found);
   return `<section class="page">
     <div class="progress" aria-hidden="true"><i></i></div>
     <a class="btn ghost back" href="#/writing">← All writing</a>
@@ -239,7 +244,10 @@ function article(slug) {
       <span class="eyebrow">${metaLine(w)}</span>
       <h1>${esc(w.title)}</h1>
       <div class="meta">${[PROFILE.name, w.date].filter(Boolean).map(esc).join(" · ")}</div>
-      ${w.body.map(p => `<p>${esc(p)}</p>`).join("")}
+      ${w.url ? `<a class="btn ghost" href="${esc(w.url)}" target="_blank" rel="noopener" style="margin-bottom:28px">Read the original ↗</a>` : ""}
+      ${w.body.map(b => typeof b === "string" ? `<p>${rich(b)}</p>` : `<h${b.h}>${rich(b.t)}</h${b.h}>`).join("")}
+      ${w.notes ? `<section class="notes"><h2>Endnotes</h2><ol>${w.notes.map((n, i) => `<li id="note-${i + 1}">${rich(n)}</li>`).join("")}</ol></section>` : ""}
+      ${w.bibliography ? `<section class="notes"><h2>Bibliography</h2><ul>${w.bibliography.map(b => `<li>${rich(b)}</li>`).join("")}</ul></section>` : ""}
     </article>
   </section>`;
 }
@@ -267,11 +275,12 @@ function distinctions() {
    MOTION LAYER
    ========================================================= */
 const revealer = new IntersectionObserver(entries => entries.forEach(e => {
-  if (!e.isIntersecting) return;
+  // tall elements (long essays) can never be 12% visible, so also accept a large visible slice
+  if (!e.isIntersecting || (e.intersectionRatio < .12 && e.intersectionRect.height < innerHeight * .3)) return;
   e.target.classList.add("in");
   e.target.querySelectorAll("[data-count]").forEach(countUp);
   revealer.unobserve(e.target);
-}), { threshold: .12 });
+}), { threshold: [0, .12, .3, .6, 1] });
 
 function countUp(el) {
   const end = parseFloat(el.dataset.count), dec = (el.dataset.count.split(".")[1] || "").length;
@@ -361,6 +370,13 @@ function render() {
   else draw();
 }
 addEventListener("click", e => {
+  const fn = e.target.closest("[data-note]");
+  if (fn) {
+    e.preventDefault();
+    const li = document.getElementById("note-" + fn.dataset.note);
+    if (li) { li.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); li.classList.remove("flash"); void li.offsetWidth; li.classList.add("flash"); }
+    return;
+  }
   const a = e.target.closest("[data-scroll]");
   if (!a) return;
   e.preventDefault();
