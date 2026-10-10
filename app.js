@@ -119,7 +119,9 @@ function heroScene() {
           <path d="M${cx - 15} ${cy - 30} h30 v10 h-30z" fill="#d9582b"/>
           <path d="M${cx - 15} ${cy + 40} l-12 16 v-30z M${cx + 15} ${cy + 40} l12 16 v-30z" fill="#c4572f"/>
         </g></g>
-        <ellipse class="hatch" cx="${cx}" cy="${cy}" rx="${r * 0.72}" ry="${r * 0.4}" fill="#3a4652"/>`;
+        ${(() => { const hx = r * 0.72, hy = r * 0.4; return `
+        <path class="hatch hatch-l" d="M${cx - hx} ${cy} A${hx} ${hy} 0 0 1 ${cx} ${cy - hy} V${cy + hy} A${hx} ${hy} 0 0 1 ${cx - hx} ${cy}Z" fill="#3a4652" stroke="#1d242c" stroke-width="2"/>
+        <path class="hatch hatch-r" d="M${cx + hx} ${cy} A${hx} ${hy} 0 0 0 ${cx} ${cy - hy} V${cy + hy} A${hx} ${hy} 0 0 0 ${cx + hx} ${cy}Z" fill="#46525e" stroke="#1d242c" stroke-width="2"/>`; })()}`;
   // front blocks
   [[4.5, 4.5, 0.9], [3.2, 4.8, 0.5]].forEach(([x, y, h]) => s += cube(x, y, 0, 0.9, 0.9, h, SLATE));
   // shield dome over the front-right city
@@ -211,7 +213,7 @@ function gloveViz() {
     <g transform="translate(-14 14)">
       <ellipse cx="110" cy="250" rx="80" ry="10" fill="rgba(0,0,0,.4)"/>
       ${finger(52, 66, 0)}${finger(84, 86, .15)}${finger(116, 80, .3)}${finger(148, 62, .45)}
-      <g class="curl" style="animation-delay:.6s"><rect x="166" y="160" width="30" height="72" rx="15" fill="#ece4d2" transform="rotate(38 181 225)"/></g>
+      <g class="curl" style="animation-delay:.6s"><rect x="166" y="160" width="30" height="72" rx="15" fill="#ece4d2" transform="rotate(26 181 225)"/></g>
       <rect x="48" y="140" width="132" height="98" rx="34" fill="#ece4d2"/>
       <rect x="48" y="140" width="132" height="98" rx="34" fill="url(#gHi)"/>
       <rect x="86" y="170" width="54" height="36" rx="10" fill="#27303a"/>
@@ -252,9 +254,9 @@ function home() {
       <div class="iso-wrap">${heroScene()}</div>
     </div>
     <div class="statrow">
-      <div class="clay stat"><b>${DISTINCTIONS.gpa}</b><span>Weighted GPA</span></div>
-      <div class="clay olive stat"><b>${DISTINCTIONS.sat}</b><span>SAT</span></div>
-      <div class="clay rust stat"><b>${DISTINCTIONS.aps.length}×5</b><span>AP exam scores</span></div>
+      <div class="clay stat"><b data-count="${DISTINCTIONS.gpa}">${DISTINCTIONS.gpa}</b><span>Weighted GPA</span></div>
+      <div class="clay olive stat"><b data-count="${DISTINCTIONS.sat}">${DISTINCTIONS.sat}</b><span>SAT</span></div>
+      <div class="clay rust stat"><b><em data-count="${DISTINCTIONS.aps.length}">${DISTINCTIONS.aps.length}</em>×5</b><span>AP exam scores</span></div>
       <div class="clay slate stat"><b>Locke</b><span>Global Essay Prize · Commended</span></div>
     </div>
     <div class="tiles">
@@ -305,6 +307,7 @@ function article(slug) {
   const w = WRITING.find(x => x.slug === slug);
   if (!w) return writingList();
   return `<section class="page">
+    <div class="progress" aria-hidden="true"><i></i></div>
     <a class="btn ghost back" href="#/writing">← All writing</a>
     <article class="clay article">
       <span class="tag">${esc(w.venue)}</span>
@@ -320,23 +323,115 @@ function distinctions() {
   return `<section class="page">
     <div class="pagehead"><p class="eyebrow">Distinctions</p><h2>Academics & awards</h2></div>
     <div class="grid">
-      <div class="clay"><span class="tag">Weighted GPA</span><div class="big" style="margin-top:14px">${d.gpa}<small> W</small></div></div>
-      <div class="clay olive"><span class="tag">SAT</span><div class="big" style="margin-top:14px">${d.sat}</div></div>
-      <div class="clay rust"><span class="tag">AP exams</span><div class="big" style="margin-top:14px">${d.aps.length}<small> × score of 5</small></div></div>
+      <div class="clay"><span class="tag">Weighted GPA</span><div class="big" style="margin-top:14px"><em data-count="${d.gpa}">${d.gpa}</em><small> W</small></div></div>
+      <div class="clay olive"><span class="tag">SAT</span><div class="big" style="margin-top:14px"><em data-count="${d.sat}">${d.sat}</em></div></div>
+      <div class="clay rust"><span class="tag">AP exams</span><div class="big" style="margin-top:14px"><em data-count="${d.aps.length}">${d.aps.length}</em><small> × score of 5</small></div></div>
     </div>
     <div class="sec"><h2>AP scholar record</h2><p class="lede">Score of 5 on every exam below.</p>
       <div class="ap-grid">${d.aps.map(a => `<div class="ap"><i>5</i><span>AP ${esc(a)}</span></div>`).join("")}</div></div>
     <div class="sec"><h2>Writing honors</h2>
-      <div class="awards">${d.honors.map(h => `<div class="clay slate award"><div><h3>${esc(h.title)}</h3><span class="mono" style="opacity:.75">${esc(h.org)}</span></div><span class="btn">${esc(h.detail)}</span></div>`).join("")}</div></div>
+      <div class="awards">${d.honors.map(h => `<div class="clay slate award"><div><h3>${esc(h.title)}</h3><span class="mono" style="opacity:.75">${esc(h.org)}</span></div><span class="btn static">${esc(h.detail)}</span></div>`).join("")}</div></div>
     <div class="sec"><h2>Speech & debate</h2>
       <div class="awards">${d.debate.map((a, i) => `<div class="clay ${i % 2 ? "olive" : ""} award"><div><h3>${esc(a.title)}</h3><span class="mono" style="opacity:.75">${esc(a.event)}</span></div><span class="tag">${esc(a.meet)}</span></div>`).join("")}</div></div>
   </section>`;
 }
 
 /* =========================================================
+   MOTION LAYER
+   ========================================================= */
+const finePointer = matchMedia("(pointer: fine)").matches;
+
+// Staggered reveal as elements scroll into view
+const revealer = new IntersectionObserver(entries => entries.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.classList.add("in");
+  e.target.querySelectorAll("[data-count]").forEach(countUp);
+  revealer.unobserve(e.target);
+}), { threshold: 0.12 });
+
+function countUp(el) {
+  const end = parseFloat(el.dataset.count), dec = (el.dataset.count.split(".")[1] || "").length;
+  if (reduceMotion || isNaN(end)) return;
+  const t0 = performance.now(), dur = 1400;
+  (function tick(t) {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+    el.textContent = (end * e).toFixed(dec);
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+// "Declassify" text scramble for mono eyebrows
+const GLYPHS = "▓▒░█#/\\<>-_=+*01";
+function scramble(el) {
+  const text = el.textContent;
+  if (reduceMotion || !text.trim()) return;
+  let f = 0;
+  const total = 26;
+  (function step() {
+    el.textContent = [...text].map((ch, i) =>
+      ch === " " || i < (f / total) * text.length ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0]).join("");
+    if (++f <= total) requestAnimationFrame(step); else el.textContent = text;
+  })();
+}
+
+// Clay tilt + sheen that follows the pointer
+function tilt(el) {
+  if (!finePointer || reduceMotion) return;
+  el.classList.add("tilt");
+  el.addEventListener("pointermove", e => {
+    const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--rx", `${(0.5 - y) * 6}deg`);
+    el.style.setProperty("--ry", `${(x - 0.5) * 8}deg`);
+    el.style.setProperty("--mx", `${x * 100}%`);
+    el.style.setProperty("--my", `${y * 100}%`);
+  });
+  el.addEventListener("pointerleave", () => { el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); });
+}
+
+// Liquid pill that slides between nav tabs
+function movePill() {
+  const nav = document.getElementById("nav"), on = nav.querySelector("a.on"), pill = nav.querySelector(".pill");
+  if (!on || !pill) return;
+  pill.style.width = on.offsetWidth + "px";
+  pill.style.transform = `translateX(${on.offsetLeft}px)`;
+}
+
+// Hero parallax
+function parallax(wrap) {
+  if (!finePointer || reduceMotion || !wrap) return;
+  const svg = wrap.querySelector("svg");
+  wrap.closest(".hero").addEventListener("pointermove", e => {
+    const x = e.clientX / innerWidth - 0.5, y = e.clientY / innerHeight - 0.5;
+    svg.style.transform = `translate(${x * -18}px, ${y * -12}px) rotateX(${y * 6}deg) rotateY(${x * 8}deg)`;
+  });
+}
+
+// Reading progress
+function progress() {
+  const bar = document.querySelector(".progress i");
+  if (!bar) return;
+  const h = document.documentElement.scrollHeight - innerHeight;
+  bar.style.transform = `scaleX(${h > 0 ? scrollY / h : 1})`;
+}
+addEventListener("scroll", progress, { passive: true });
+
+function animateView(view) {
+  view.querySelectorAll(".pagehead, .hero > *, .clay, .ap, .sec > h2, .sec > .lede").forEach((el, i) => {
+    el.classList.add("reveal");
+    el.style.setProperty("--d", `${Math.min(i, 8) * 70}ms`);
+    revealer.observe(el);
+  });
+  view.querySelectorAll(".eyebrow").forEach(scramble);
+  view.querySelectorAll(".project, .stat, .grid > .clay, .award").forEach(tilt);
+  parallax(view.querySelector(".iso-wrap"));
+  movePill();
+  progress();
+}
+
+/* =========================================================
    ROUTER
    ========================================================= */
-function render() {
+function draw() {
   const [, route = "", sub] = location.hash.replace(/^#/, "").split("/");
   const view = document.getElementById("view");
   const map = { "": home, projects, writing: () => sub ? article(decodeURIComponent(sub)) : writingList(), distinctions };
@@ -346,6 +441,20 @@ function render() {
   document.title = `${PROFILE.name} — ${route ? route[0].toUpperCase() + route.slice(1) : "National Security & Defense Technology"}`;
   scrollTo(0, 0);
   if (location.hash) view.focus({ preventScroll: true });
+  animateView(view);
 }
+function render() {
+  if (document.startViewTransition && !reduceMotion && document.getElementById("view").childElementCount)
+    document.startViewTransition(draw);
+  else draw();
+}
+// Transitions expand from wherever the visitor clicked
+addEventListener("click", e => {
+  document.documentElement.style.setProperty("--vx", `${e.clientX}px`);
+  document.documentElement.style.setProperty("--vy", `${e.clientY}px`);
+});
+addEventListener("resize", movePill);
+document.getElementById("nav").insertAdjacentHTML("afterbegin", '<span class="pill" aria-hidden="true"></span>');
+document.fonts && document.fonts.ready.then(movePill);
 addEventListener("hashchange", render);
 render();
