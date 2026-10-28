@@ -27,13 +27,6 @@ const PROJECTS = [
     desc: "A wearable controller that reads hand motion with flex sensors and an inertial measurement unit, then uses those gestures to direct a simulated interceptor against an incoming track. It is a prototype for faster, more intuitive operator control in air and missile defense.",
     stack: ["Microcontroller", "Flex sensors", "IMU", "Embedded C"],
   },
-  {
-    title: "Your Next Project",
-    tag: "Placeholder",
-    viz: "drone",
-    desc: "Add another project by copying an entry in the PROJECTS list in app.js. Give it a title, tag, description and stack, then pick its visual from the list above that entry.",
-    stack: ["Edit app.js"],
-  },
 ];
 
 // Each piece: slug (URL id), title, date, venue/tag, summary, optional url (original publication),
@@ -199,7 +192,7 @@ function home() {
       </dl>
     </div>
     <div class="tiles">
-      <a class="frame tile" href="#/projects">${scene("jet")}<span class="eyebrow">02 · Projects</span><h3>Defense tech I've built</h3><p>${PROJECTS.filter(p => p.tag !== "Placeholder").map(p => esc(p.title)).join(" · ")}</p><span class="go">Open →</span></a>
+      <a class="frame tile" href="#/projects">${scene("jet")}<span class="eyebrow">02 · Projects</span><h3>Defense tech I've built</h3><p>${PROJECTS.map(p => esc(p.title)).join(" · ")}</p><span class="go">Open →</span></a>
       <a class="frame tile" href="#/writing">${scene("icbm")}<span class="eyebrow">03 · Writing</span><h3>Essays & analysis</h3><p>${WRITING.map(w => esc(w.title)).join(" · ")}</p><span class="go">Open →</span></a>
       <a class="frame tile" href="#/distinctions">${scene("satellite")}<span class="eyebrow">04 · Distinctions</span><h3>Academics & awards</h3><p>Ranked 4th nationally in speech &amp; debate · 4.7 GPA · 1550 SAT · 9 AP 5s</p><span class="go">Open →</span></a>
     </div>
